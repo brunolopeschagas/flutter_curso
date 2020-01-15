@@ -6,8 +6,6 @@ import 'package:http/http.dart' as http;
 void main() async {
   List _dados = await getJson();
 
-  printList(_dados);
-
   runApp(new MaterialApp(
     home: Scaffold(
         appBar: AppBar(
@@ -34,6 +32,10 @@ void main() async {
                         "${_dados[posicao]['email'][0]}"
                       ),
                     ),
+                    onTap: () => _mostrarMensagem(
+                        context,
+                        "${_dados[posicao]['email']}"
+                    ),
                   ),
                 ],
               );
@@ -45,6 +47,23 @@ void main() async {
   );
 }
 
+void _mostrarMensagem(BuildContext context, String mensagem){
+  var alerta = new AlertDialog(
+    title: Text('JSON'),
+    content: Text(mensagem),
+    actions: <Widget>[
+      FlatButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        child: Text("OK"),
+      )
+    ],
+  );
+
+  showDialog(context: context, builder: (context) => alerta);
+}
+
 //Lê o json de forma assincrona
 Future<List> getJson() async {
   String url = 'https://jsonplaceholder.typicode.com/comments';
@@ -53,11 +72,5 @@ Future<List> getJson() async {
     return json.decode(response.body);
   } else {
     throw Exception("Falhou");
-  }
-}
-
-void printList(List pLista) {
-  for (int i = 0; i < pLista.length; i++) {
-    print(pLista[i]['name'] + ' - ' + pLista[i]['email']);
   }
 }
