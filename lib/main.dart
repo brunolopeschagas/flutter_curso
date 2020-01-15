@@ -28,6 +28,12 @@ void main() async {
                     subtitle: Text(
                         "${_dados[posicao]['body']}"
                     ),
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blueAccent,
+                      child: Text(
+                        "${_dados[posicao]['email'][0]}"
+                      ),
+                    ),
                   ),
                 ],
               );
