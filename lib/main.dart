@@ -1,37 +1,76 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+
+//import para http
+import 'package:http/http.dart' as http; // adicionar o import no pubspec http: ^0.12.0+2
+
+//imports para datas
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
 
 void main() async {
-  List _dados = await jsonComplexo();
+  Map _dados = await jsonComplexoMaps();
+  List _features = _dados['features'];
+
+  //config para datas em portugues
+  initializeDateFormatting("pt_BR", null);
+  DateFormat _dateFormat = new DateFormat.yMMMd("pt_BR");
 
   /*JSON COMPLEXO DO EXEMPLO
-  [
   {
-    "id": 1,
-    "name": "Leanne Graham",
-    "username": "Bret",
-    "email": "Sincere@april.biz",
-    "address": {
-      "street": "Kulas Light",
-      "suite": "Apt. 556",
-      "city": "Gwenborough",
-      "zipcode": "92998-3874",
-      "geo": {
-        "lat": "-37.3159",
-        "lng": "81.1496"
-      }
-    },
-    "phone": "1-770-736-8031 x56442",
-    "website": "hildegard.org",
-    "company": {
-      "name": "Romaguera-Crona",
-      "catchPhrase": "Multi-layered client-server neural-net",
-      "bs": "harness real-time e-markets"
-    }
-  },.....
-  ]
+  "type": "FeatureCollection",
+  "metadata": {
+    "generated": 1579136519000,
+    "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
+    "title": "USGS All Earthquakes, Past Day",
+    "status": 200,
+    "api": "1.8.1",
+    "count": 321
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "mag": 1.26,
+        "place": "7km NE of Coso Junction, CA",
+        "time": 1579136115650,
+        "updated": 1579136332112,
+        "tz": -480,
+        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/ci39271752",
+        "detail": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/ci39271752.geojson",
+        "felt": null,
+        "cdi": null,
+        "mmi": null,
+        "alert": null,
+        "status": "automatic",
+        "tsunami": 0,
+        "sig": 24,
+        "net": "ci",
+        "code": "39271752",
+        "ids": ",ci39271752,",
+        "sources": ",ci,",
+        "types": ",geoserve,nearby-cities,origin,phase-data,scitech-link,",
+        "nst": 16,
+        "dmin": 0.04205,
+        "rms": 0.15,
+        "gap": 170,
+        "magType": "ml",
+        "type": "earthquake",
+        "title": "M 1.3 - 7km NE of Coso Junction, CA"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -117.8848333,
+          36.0831667,
+          1.9
+        ]
+      },
+      "id": "ci39271752"
+    },,.....
+  }
    */
 //
 //  for (int i = 0; i < _dados.length; i++) {
@@ -43,11 +82,11 @@ void main() async {
   runApp(new MaterialApp(
     home: Scaffold(
         appBar: AppBar(
-          title: Text("JSON"),
+          title: Text("Terremotos"),
         ),
         body: Center(
           child: ListView.builder(
-            itemCount: _dados.length,
+            itemCount: _features.length,
             padding: const EdgeInsets.all(8),
             itemBuilder: (BuildContext context, int posicao) {
               return Column(
@@ -55,20 +94,25 @@ void main() async {
                   Divider(height: 4.5),
                   ListTile(
                     title: Text(
-                        "${_dados[posicao]['name']}"
+                        formatDate(
+                            _features[posicao]['properties']['time'],
+                            _dateFormat
+                        )
                     ),
                     subtitle: Text(
-                        "${_dados[posicao]['address']['street']}\n"
-                        "${_dados[posicao]['address']['geo']['lat']},"
-                        "${_dados[posicao]['address']['geo']['lng']}\n"
+                        "${_features[posicao]['properties']['place']}\n"
                     ),
                     leading: CircleAvatar(
                       backgroundColor: Colors.greenAccent,
                       child: Text(
-                          "${_dados[posicao]['username'][0]}"
+                          "${_features[posicao]['properties']['mag']}"
                       ),
                     ),
-                  onTap: () => _mostrarMensagem(context, "Você clicou no ${_dados[posicao]['name']}"),
+                    onTap: () =>
+                        _mostrarMensagem(
+                            context,
+                            "${_features[posicao]['properties']['title']}"
+                        ),
                   ),
                 ],
               );
@@ -79,9 +123,17 @@ void main() async {
   ));
 }
 
+String formatDate(int pTimeUnix, DateFormat pDateFormart) {
+  return pDateFormart.format(
+      new DateTime.fromMicrosecondsSinceEpoch(
+          pTimeUnix * 1000
+      )
+  );
+}
+
 void _mostrarMensagem(BuildContext context, String mensagem) {
   var alerta = new AlertDialog(
-    title: Text('JSON'),
+    title: Text('Terremoto'),
     content: Text(mensagem),
     actions: <Widget>[
       FlatButton(
@@ -97,8 +149,8 @@ void _mostrarMensagem(BuildContext context, String mensagem) {
 }
 
 //Lê o json de forma assincrona
-Future<List> jsonComplexo() async {
-  String url = 'https://jsonplaceholder.typicode.com/users';
+Future<Map> jsonComplexoMaps() async {
+  String url = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson';
   http.Response response = await http.get(url);
   if (response.statusCode == 200) {
     return json.decode(response.body);
