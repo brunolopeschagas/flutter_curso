@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(new MaterialApp(
@@ -10,74 +9,74 @@ void main() {
 }
 
 class Home extends StatefulWidget {
+  @override
   _HomeState createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
-  TextEditingController _camposDadosControl = new TextEditingController();
+  final String _PREFERENCE_KEY_DADOS = 'dados';
+  final TextEditingController _dadosController = new TextEditingController();
+  String _dadosSalvos = "";
+
+  @override
+  // este metodo executa no momento que a activity e executada
+  void initState() {
+    super.initState();
+    _pegarDados();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    return new Scaffold(
-      appBar: new AppBar(
-        title: Text("Ler/Gravar"),
-        centerTitle: true,
-        backgroundColor: Colors.greenAccent,
-      ),
-      body: new Container(
-          alignment: Alignment.topCenter,
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text("Shared Preferences"),
+          centerTitle: true,
+          backgroundColor: Colors.deepOrange,
+        ),
+        body: Container(
+          padding: EdgeInsets.all(10),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               TextField(
-                controller: _camposDadosControl,
-                decoration: InputDecoration(labelText: "Escreva algo"),
+                controller: _dadosController,
+                decoration:
+                    InputDecoration(labelText: 'Escreva algo para salvar...'),
               ),
               FlatButton(
-                  color: Colors.greenAccent,
-                  onPressed: () {
-                    gravarDados(_camposDadosControl.text);
-                  },
-                  child: Text("Gravar")
+                onPressed: () {
+                  salvar(_dadosController.text);
+                },
+                child: Text('Salvar'),
+                color: Colors.deepOrange,
               ),
-              FutureBuilder(
-                future: lerDados(),
-                builder: (BuildContext context, AsyncSnapshot<String> dados){
-                  if(dados.hasData != null){
-                    return Text(dados.data);
-                  }else{
-                    return Text("nada foi salvo!");
-                  }
-                }),
+              Text("Dados salvos: $_dadosSalvos"),
             ],
           ),
+        ),
       ),
     );
   }
 
-  Future<String> get _caminhooLocal async {
-    final DIRETORIO = await getApplicationDocumentsDirectory();
-    return DIRETORIO.path;
+  void salvar(String dado) {
+    _salvarDados(dado);
+    _pegarDados();
   }
 
-  Future<File> get _arquivoLocal async {
-    final CAMINHO = await _caminhooLocal;
-    return new File('$CAMINHO/dados.txt');
+  void _pegarDados() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String info = preferences.getString(_PREFERENCE_KEY_DADOS);
+    setState(() {
+      if (null != info && info.isNotEmpty) {
+        _dadosSalvos = info;
+      } else {
+        _dadosSalvos = 'Nenhum dado.';
+      }
+    });
   }
 
-  Future<File> gravarDados(String pMensagem) async {
-    final ARQUIVO = await _arquivoLocal;
-    return ARQUIVO.writeAsString('$pMensagem');
-  }
-
-  Future<String> lerDados() async {
-    try {
-      final arquivo = await _arquivoLocal;
-      String dados = await arquivo.readAsString();
-      return dados;
-    } catch (e) {
-      return "Não foi salvo nada!";
-    }
+  void _salvarDados(String pMensagem) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setString(_PREFERENCE_KEY_DADOS, pMensagem);
   }
 }
