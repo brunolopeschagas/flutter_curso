@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:http_rest_app/modeos/Usuario.dart';
+import 'package:http_rest_app/ui/ajudante_bd.dart';
 
-void main() {
+void main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  BDadosAjudante db = new BDadosAjudante();
+
+  int usuarioSalvo = await db.insertUsuario(new Usuario("Maria", "aleluia"));
+  print(usuarioSalvo);
+  usuarioSalvo = await db.insertUsuario(new Usuario("Maria", "aleluia"));
+  print(usuarioSalvo);
+
+
   runApp(new MaterialApp(
     title: "Base de dados SQFlite",
     home: new Home(),
