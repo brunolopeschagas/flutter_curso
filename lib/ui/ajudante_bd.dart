@@ -43,7 +43,7 @@ class BDadosAjudante {
   }
 
   Future<int> insertUsuario(Usuario usuario) async {
-    var bdCliente = await db;
+    Database bdCliente = await db;
     return await bdCliente.insert("$tabelaUsuario", usuario.toMap());
   }
 
@@ -77,6 +77,14 @@ class BDadosAjudante {
     Database bdCliente = await db;
     return await bdCliente.update("$tabelaUsuario", usuario.toMap(),
         where: "$colId = ?", whereArgs: [usuario.id]);
+  }
+
+  Future<int> getCount() async {
+    Database bdCliente = await db;
+    
+    var x = await bdCliente.rawQuery('SELECT COUNT (*) from $tabelaUsuario');
+    int count = Sqflite.firstIntValue(x);
+    return count;
   }
 
   Future desconectar() async {
